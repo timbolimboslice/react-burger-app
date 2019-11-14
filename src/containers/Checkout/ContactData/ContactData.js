@@ -4,6 +4,9 @@ import Spinner from '../../../components/UI/Spinner/Spinner';
 import classes from './ContactData.css';
 import axios from '../../../axios-orders';
 import Input from '../../../components/UI/Input/Input';
+import { connect } from 'react-redux';
+import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
+import * as actions from '../../../store/actions/index';
 
 class ContactData extends Component {
     state = {
@@ -120,28 +123,35 @@ class ContactData extends Component {
                 valid: true
             }
        },
-       formIsValid: false,
-       loading: false
+       formIsValid: false
     }
 
     checkValidity(value, rules) {
         let isValid = true;
-        if(!rules) {
+        if (!rules) {
             return true;
         }
-
-        //the '&& isValid' makes sures it passes all rules, not just the last one
-        if(rules.required) {
+        
+        if (rules.required) {
             isValid = value.trim() !== '' && isValid;
         }
 
-        //create any rules dynamically
-        if(rules.minLength) {
-            isValid = value.length >= rules.minLength && isValid;
+        if (rules.minLength) {
+            isValid = value.length >= rules.minLength && isValid
         }
 
-        if(rules.maxLength) {
-            isValid = value.length <= rules.maxLength && isValid;
+        if (rules.maxLength) {
+            isValid = value.length <= rules.maxLength && isValid
+        }
+
+        if (rules.isEmail) {
+            const pattern = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+            isValid = pattern.test(value) && isValid
+        }
+
+        if (rules.isNumeric) {
+            const pattern = /^\d+$/;
+            isValid = pattern.test(value) && isValid
         }
 
         return isValid;
@@ -149,7 +159,6 @@ class ContactData extends Component {
 
     orderHandler = (event) => {
         event.preventDefault();
-        this.setState({ loading: true });
         
         //transforms data
         const formData = {};
@@ -158,20 +167,12 @@ class ContactData extends Component {
         }
         
         const order = {
-            ingredients: this.props.ingredients,
+            ingredients: this.props.ings,
             price: this.props.price,
             orderData: formData
         }
 
-        //.json is specific for firebase only
-        axios.post('/orders.json', order)
-            .then(response => {
-                this.setState({loading: false});
-                this.props.history.push('/');
-            })
-            .catch(error => {
-                this.setState({loading: false});
-            });
+        this.props.onOrderBurger(order, this.props.token);
     }
 
     inputChangedHandler = (event, inputIdentifier) => {
@@ -224,7 +225,7 @@ class ContactData extends Component {
             </form>
         );
 
-        if(this.state.loading) {
+        if(this.props.loading) {
             form = <Spinner />
         }
 
@@ -237,4 +238,19 @@ class ContactData extends Component {
     }
 }
 
-export default ContactData;
+const mapStateToProps = state => {
+    return {
+        ings: state.burgerBuilder.ingredients,
+        price: state.burgerBuilder.totalPrice,
+        loading: state.order.loading,
+        token: state.auth.token
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token))
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));
