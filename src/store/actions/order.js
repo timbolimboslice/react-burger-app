@@ -28,7 +28,6 @@ export const purchaseBurger = (orderData, token) => {
         //.json is specific for firebase only
         axios.post('/orders.json?auth=' + token, orderData)
             .then(response => {
-                console.log(response.data);
                 dispatch(purchaseBurgerSuccess(response.data.name, orderData));
             })
             .catch(error => {

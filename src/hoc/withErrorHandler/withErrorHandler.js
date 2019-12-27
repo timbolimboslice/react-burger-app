@@ -21,7 +21,6 @@ const withErrorHandler = (WrappedComponent, axios) => {
 
         //executed when a component isnt required anymore, in this istance, this is preventing memory leaks
         componentWillUnmount() {
-            console.log('will unmount', this.reqInterceptor, this.resInterceptor);
             //requires reference
             axios.interceptors.request.eject(this.reqInterceptor);
 

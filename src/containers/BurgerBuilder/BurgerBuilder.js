@@ -11,7 +11,7 @@ import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 import * as actions from '../../store/actions'; //automatically picks up index.js
 import axios from '../../../src/axios-orders';
 
-class BurgerBuilder extends Component {
+export class BurgerBuilder extends Component {
     //older, not as modern
     // constructor(props) {
     //     super(props);
@@ -39,7 +39,6 @@ class BurgerBuilder extends Component {
         
         //this doesnt use state anymore
         //this.setState({purchasable: sum > 0 });
-        console.log(sum);
         return sum > 0;
         //returns a bool now
     }
